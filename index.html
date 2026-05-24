@@ -1,1107 +1,1173 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>104 Audio-Reactive Canvases</title>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#0a0a0f;
-  --card:#12121a;
-  --border:#1e1e2e;
-  --accent:#7c5cfc;
-  --text:#e0e0f0;
-  --text2:#8888aa;
-  --card-height:200px;
-  --header-height:70px;
-}
-@media (max-width:768px){
-  :root{
-    --card-height:160px;
-    --header-height:60px;
-  }
-}
-@media (max-width:480px){
-  :root{
-    --card-height:140px;
-  }
-}
+:root{--bg:#0a0a0f;--card:#12121a;--border:#1e1e2e;--accent:#7c5cfc;--text:#e0e0f0;--text2:#8888aa}
 html{scroll-behavior:smooth}
-body{
-  background:var(--bg);
-  color:var(--text);
-  font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
-  min-height:100vh;
-  line-height:1.5;
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  touch-action:manipulation;
-}
-header{
-  position:sticky;
-  top:0;
-  z-index:100;
-  background:linear-gradient(180deg,var(--bg) 70%,transparent);
-  padding:12px 16px;
-  display:flex;
-  flex-wrap:wrap;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  height:var(--header-height);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
-}
-header h1{
-  font-size:1.1rem;
-  font-weight:600;
-  background:linear-gradient(135deg,#7c5cfc,#00d4aa);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-  white-space:nowrap;
-  margin:0;
-}
-.header-actions{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  flex-wrap:wrap;
-}
-#initBtn{
-  padding:8px 16px;
-  border:1px solid var(--accent);
-  background:transparent;
-  color:var(--accent);
-  border-radius:8px;
-  cursor:pointer;
-  font-size:0.85rem;
-  transition:all 0.25s ease;
-  font-weight:500;
-  min-width:120px;
-}
-#initBtn:hover{
-  background:var(--accent);
-  color:#fff;
-  transform:scale(1.03);
-}
-#initBtn:active{
-  transform:scale(0.98);
-}
-#initBtn.active{
-  border-color:#00d4aa;
-  color:#00d4aa;
-  pointer-events:none;
-  background:rgba(0,212,170,0.1);
-}
-#status{
-  font-size:0.75rem;
-  color:var(--text2);
-  min-width:140px;
-  text-align:right;
-  line-height:1.3;
-}
-#grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
-  gap:12px;
-  padding:12px 16px 24px;
-  width:100%;
-  max-width:1800px;
-  margin:0 auto;
-}
-@media (max-width:768px){
-  #grid{
-    grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-    gap:10px;
-    padding:10px 12px 20px;
-  }
-}
-@media (max-width:480px){
-  #grid{
-    grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
-    gap:8px;
-    padding:8px 10px 16px;
-  }
-}
-.card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:12px;
-  overflow:hidden;
-  transition:transform 0.3s cubic-bezier(0.4,0,0.2,1),box-shadow 0.3s;
-  position:relative;
-  will-change:transform;
-  aspect-ratio:16/10;
-}
-.card:hover{
-  transform:translateY(-3px);
-  box-shadow:0 8px 30px rgba(124,92,252,0.15);
-  z-index:5;
-}
-@media (hover:none){
-  .card:hover{
-    transform:none;
-    box-shadow:none;
-  }
-}
-.card canvas{
-  display:block;
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-.card-label{
-  position:absolute;
-  top:8px;
-  left:10px;
-  font-size:0.55rem;
-  color:var(--text2);
-  background:rgba(10,10,15,0.85);
-  padding:2px 8px;
-  border-radius:6px;
-  pointer-events:none;
-  letter-spacing:0.3px;
-  font-weight:500;
-  backdrop-filter:blur(4px);
-  -webkit-backdrop-filter:blur(4px);
-  max-width:85%;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-@media (max-width:480px){
-  .card-label{
-    font-size:0.5rem;
-    padding:1px 6px;
-    top:6px;
-    left:8px;
-  }
-}
-.hint{
-  text-align:center;
-  padding:12px 16px;
-  color:var(--text2);
-  font-size:0.8rem;
-  font-style:italic;
-  max-width:600px;
-  margin:0 auto;
-  line-height:1.4;
-}
-@media (max-width:480px){
-  .hint{
-    font-size:0.75rem;
-    padding:8px 12px;
-  }
-}
-footer{
-  text-align:center;
-  padding:20px 16px 40px;
-  color:var(--text2);
-  font-size:0.8rem;
-}
-@media (prefers-reduced-motion:reduce){
-  *{
-    animation-duration:0.01ms !important;
-    animation-iteration-count:1 !important;
-    transition-duration:0.01ms !important;
-    scroll-behavior:auto !important;
-  }
-}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+header{position:sticky;top:0;z-index:100;background:linear-gradient(180deg,var(--bg) 60%,transparent);padding:16px 24px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+header h1{font-size:1.2rem;font-weight:600;background:linear-gradient(135deg,#7c5cfc,#00d4aa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+#initBtn{padding:10px 24px;border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:8px;cursor:pointer;font-size:.9rem;transition:all .25s}
+#initBtn:hover{background:var(--accent);color:#fff;transform:scale(1.05)}
+#initBtn.active{border-color:#00d4aa;color:#00d4aa;pointer-events:none}
+#status{font-size:.75rem;color:var(--text2);min-width:180px}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:16px 24px 60px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:transform .3s cubic-bezier(.4,0,.2,1),box-shadow .3s;position:relative}
+.card:hover{transform:translateY(-4px) scale(1.015);box-shadow:0 12px 40px rgba(124,92,252,.12)}
+.card canvas{display:block;width:100%;height:200px}
+.card-label{position:absolute;top:8px;left:10px;font-size:.6rem;color:var(--text2);background:rgba(10,10,15,.7);padding:2px 6px;border-radius:4px;pointer-events:none;letter-spacing:.5px}
+/* View Mode Styles */
+#viewModeBtn{padding:10px 24px;border:1px solid #00d4aa;background:transparent;color:#00d4aa;border-radius:8px;cursor:pointer;font-size:.9rem;transition:all .25s;margin-left:8px}
+#viewModeBtn:hover{background:#00d4aa;color:#0a0a0f;transform:scale(1.05)}
+.view-mode-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(10,10,15,0.95);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.view-mode-container{background:var(--card);border:2px solid var(--accent);border-radius:16px;max-width:95vw;max-height:95vh;display:flex;flex-direction:column;overflow:hidden}
+.view-mode-header{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid var(--border);background:rgba(18,18,26,0.95)}
+.view-mode-header h2{font-size:1.1rem;font-weight:600;color:var(--text)}
+#closeViewMode{background:transparent;border:1px solid var(--border);color:var(--text2);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:1rem;transition:all .2s}
+#closeViewMode:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.view-mode-controls{display:flex;flex-wrap:wrap;gap:12px;padding:12px 20px;border-bottom:1px solid var(--border);background:rgba(18,18,26,0.9);align-items:center}
+.control-group{display:flex;align-items:center;gap:8px;font-size:.85rem}
+.control-group label{color:var(--text2)}
+.res-btn{padding:6px 12px;border:1px solid var(--border);background:transparent;color:var(--text);border-radius:6px;cursor:pointer;font-size:.8rem;transition:all .2s}
+.res-btn.active{border-color:var(--accent);background:rgba(124,92,252,0.15);color:var(--accent)}
+.res-btn:hover{border-color:var(--accent);transform:scale(1.03)}
+#visualSelect{padding:6px 10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:6px;font-size:.85rem}
+#recordDuration{width:60px;padding:4px 8px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:4px;text-align:center}
+#startRecordBtn{padding:8px 16px;border:1px solid #00d4aa;background:transparent;color:#00d4aa;border-radius:8px;cursor:pointer;font-size:.85rem;transition:all .2s;font-weight:500}
+#startRecordBtn:hover{background:#00d4aa;color:#0a0a0f;transform:scale(1.03)}
+#startRecordBtn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.view-mode-canvas-container{position:relative;flex:1;display:flex;align-items:center;justify-content:center;background:var(--bg);overflow:hidden;min-height:300px}
+#viewCanvas{display:block;max-width:100%;max-height:100%;object-fit:contain}
+#textLayer{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+.text-element{position:absolute;pointer-events:auto;cursor:move;min-width:50px;min-height:20px;padding:4px 8px;border:2px dashed transparent;border-radius:4px;transition:border-color .2s;user-select:none}
+.text-element:hover{border-color:var(--accent)}
+.text-element.editing{border-color:#00d4aa;background:rgba(0,212,170,0.1)}
+.text-element[contenteditable="true"]{cursor:text;outline:none}
+.text-resize-handle{position:absolute;width:12px;height:12px;background:var(--accent);border:2px solid #fff;border-radius:50%;pointer-events:auto;cursor:nwse-resize}
+.text-resize-handle.br{bottom:-6px;right:-6px}
+.text-resize-handle.bl{bottom:-6px;left:-6px;cursor:nesw-resize}
+.text-resize-handle.tr{top:-6px;right:-6px;cursor:nesw-resize}
+.text-resize-handle.tl{top:-6px;left:-6px}
+.text-tools{display:flex;justify-content:space-between;align-items:center;padding:10px 20px;border-top:1px solid var(--border);background:rgba(18,18,26,0.95);font-size:.8rem}
+#addTextBtn{padding:6px 14px;border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:6px;cursor:pointer;font-size:.8rem;transition:all .2s}
+#addTextBtn:hover{background:var(--accent);color:#fff}
+#textColorPicker{width:36px;height:28px;padding:0;border:2px solid var(--border);background:var(--bg);border-radius:6px;cursor:pointer}
+#textColorPicker:hover{border-color:var(--accent)}
+.hint{color:var(--text2);font-style:italic}
+#recordingIndicator{display:none;align-items:center;gap:8px;padding:8px 16px;background:rgba(255,71,87,0.15);border:1px solid #ff4757;border-radius:8px;color:#ff6b6b;font-size:.85rem;font-weight:500}
+#recordingIndicator.active{display:flex;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.6}}
+.download-progress{width:100px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-left:12px}
+.download-progress-bar{height:100%;background:linear-gradient(90deg,#7c5cfc,#00d4aa);width:0%;transition:width .3s}
+.text-color-bar{display:flex;gap:4px;align-items:center}
+.color-swatch{width:20px;height:20px;border-radius:4px;cursor:pointer;border:2px solid transparent;transition:all .2s}
+.color-swatch:hover{border-color:#fff;transform:scale(1.1)}
+.color-swatch.active{border-color:#fff;box-shadow:0 0 0 2px var(--accent)}
 </style>
 </head>
 <body>
 <header>
-  <h1>⬡ 104 Audio-Reactive Canvases</h1>
-  <div class="header-actions">
-    <button id="initBtn">🎙 Initialize Audio</button>
-    <span id="status">Waiting…</span>
-  </div>
+<h1>⬡ 104 Audio-Reactive Canvases</h1>
+<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+<button id="initBtn">🎙 Initialize Audio</button>
+<button id="viewModeBtn">🎬 View Mode</button>
+<span id="status">Waiting…</span>
+</div>
 </header>
-
 <div id="grid"></div>
 
-<div class="hint">
-  Tap "Initialize Audio" to enable microphone input • 
-  Animations respond to sound • 
-  Works offline with organic fallback • 
-  Scroll to explore all 104 unique visuals
+<!-- View Mode Overlay -->
+<div id="viewModeOverlay" class="view-mode-overlay" style="display:none;">
+  <div class="view-mode-container">
+    <div class="view-mode-header">
+      <h2>🎬 Full Screen Preview</h2>
+      <button id="closeViewMode">✕ Close</button>
+    </div>
+    <div class="view-mode-controls">
+      <div class="control-group">
+        <label>Resolution:</label>
+        <button class="res-btn active" data-w="1080" data-h="1920">📱 1080×1920</button>
+        <button class="res-btn" data-w="1920" data-h="1080">🖥️ 1920×1080</button>
+      </div>
+      <div class="control-group">
+        <label>Visual:</label>
+        <select id="visualSelect"></select>
+      </div>
+      <div class="control-group">
+        <label>Duration:</label>
+        <input type="number" id="recordDuration" min="5" max="60" value="15"> sec
+      </div>
+      <button id="startRecordBtn">⏺️ Record & Download</button>
+      <div id="recordingIndicator">
+        <span>● Recording</span>
+        <div class="download-progress"><div class="download-progress-bar" id="progressBar"></div></div>
+      </div>
+    </div>
+    <div class="view-mode-canvas-container" id="canvasContainer">
+      <canvas id="viewCanvas"></canvas>
+      <div id="textLayer"></div>
+    </div>
+    <div class="text-tools">
+      <button id="addTextBtn">➕ Add Text</button>
+      <div class="text-color-bar">
+        <label style="color:var(--text2);font-size:.8rem">Color:</label>
+        <input type="color" id="textColorPicker" value="#ffffff">
+        <div class="color-swatch active" data-color="#ffffff" style="background:#ffffff"></div>
+        <div class="color-swatch" data-color="#00d4aa" style="background:#00d4aa"></div>
+        <div class="color-swatch" data-color="#7c5cfc" style="background:#7c5cfc"></div>
+        <div class="color-swatch" data-color="#ff6b9d" style="background:#ff6b9d"></div>
+        <div class="color-swatch" data-color="#ffd93d" style="background:#ffd93d"></div>
+        <div class="color-swatch" data-color="#ff4757" style="background:#ff4757"></div>
+      </div>
+      <span class="hint">Double-click text to edit • Drag to move • Corners to resize</span>
+    </div>
+  </div>
 </div>
-
-<footer>
-  <p>🎨 104 unique audio-reactive visualizations • Responsive design • Mobile optimized</p>
-</footer>
 
 <script>
 (function(){
 'use strict';
-
-// Configuration
-const TOTAL_VISUALS = 104;
-const CATEGORY_COUNT = 13; // Increased from 12 to 13 for better distribution
-const CATEGORY_NAMES = [
-  'Ripples','Particles','Geometry','Waves','Cosmic','Bubble','Matrix',
-  'Fractal','Plasma','Life','Fluid','Pulse','Nebula'
-];
-const CATEGORY_COLORS = [
-  ['#4a9eff','#00d4aa','#7c5cfc','#ff6b9d','#ffd93d','#ff4757','#2ed573','#1e90ff','#ff6348'],
-  ['#ff9ff3','#54a0ff','#5f27cd','#01a3a4','#f368e0','#ff6b6b','#48dbfb','#ff9f43','#00d2d3'],
-  ['#e056fd','#22a6b3','#7ed6df','#e77f67','#cf6a87','#574b90','#f8a5c2','#63cdda','#778beb'],
-  ['#82ccdd','#e4c1f5','#f5cd79','#546de5','#e15f41','#3c6382','#d63031','#a29bfe','#fd79a8'],
-  ['#b8e994','#6a89cc','#e55039','#82ccdd','#78e08f','#e66767','#3867d6','#f7b731','#fc5c65'],
-  ['#0f9d58','#1db954','#34c759','#20bf6b','#00b894','#27ae60','#2ecc71','#26de81','#6ab04c'],
-  ['#00b894','#00cec9','#0984e3','#6c5ce7','#e84393','#fd79a8','#d63031','#f39c12','#2ecc71'],
-  ['#a29bfe','#6c5ce7','#fd79a8','#e17055','#00b894','#00cec9','#0984e3','#fdcb6e','#e84393'],
-  ['#2d3436','#636e72','#b2bec3','#dfe6e9','#74b9ff','#a29bfe','#fd79a8','#55efc4','#ffeaa7'],
-  ['#0984e3','#6c5ce7','#d63031','#fdcb6e','#00b894','#e84393','#00cec9','#fab1a0','#74b9ff'],
-  ['#6c5ce7','#00cec9','#e17055','#a29bfe','#55efc4','#fd79a8','#ffeaa7','#74b9ff','#dfe6e9'],
-  ['#fd79a8','#e84393','#6c5ce7','#0984e3','#00b894','#fdcb6e','#e17055','#a29bfe','#00cec9'],
-  ['#ff9e6d','#ff6b6b','#4ecdc4','#45b7d1','#96ceb4','#feca57','#ff9ff3','#54a0ff','#5f27cd']
+const COLS=104,CAT_COUNT=12;
+const CAT_NAMES=['Ripples','Particles','Geometry','Waves','Cosmic','Bubble','Matrix','Fractal','Plasma','Life','Fluid','Pulse'];
+const CAT_COLORS=[
+['#4a9eff','#00d4aa','#7c5cfc','#ff6b9d','#ffd93d','#ff4757','#2ed573','#1e90ff','#ff6348'],
+['#ff9ff3','#54a0ff','#5f27cd','#01a3a4','#f368e0','#ff6b6b','#48dbfb','#ff9f43','#00d2d3'],
+['#e056fd','#22a6b3','#7ed6df','#e77f67','#cf6a87','#574b90','#f8a5c2','#63cdda','#778beb'],
+['#82ccdd','#e4c1f5','#f5cd79','#546de5','#e15f41','#3c6382','#d63031','#a29bfe','#fd79a8'],
+['#b8e994','#6a89cc','#e55039','#82ccdd','#78e08f','#e66767','#3867d6','#f7b731','#fc5c65'],
+['#0f9d58','#1db954','#34c759','#20bf6b','#00b894','#27ae60','#2ecc71','#26de81','#6ab04c'],
+['#00b894','#00cec9','#0984e3','#6c5ce7','#e84393','#fd79a8','#d63031','#f39c12','#2ecc71'],
+['#a29bfe','#6c5ce7','#fd79a8','#e17055','#00b894','#00cec9','#0984e3','#fdcb6e','#e84393'],
+['#2d3436','#636e72','#b2bec3','#dfe6e9','#74b9ff','#a29bfe','#fd79a8','#55efc4','#ffeaa7'],
+['#0984e3','#6c5ce7','#d63031','#fdcb6e','#00b894','#e84393','#00cec9','#fab1a0','#74b9ff'],
+['#6c5ce7','#00cec9','#e17055','#a29bfe','#55efc4','#fd79a8','#ffeaa7','#74b9ff','#dfe6e9'],
+['#fd79a8','#e84393','#6c5ce7','#0984e3','#00b894','#fdcb6e','#e17055','#a29bfe','#00cec9']
 ];
 
-// DOM Elements
-const grid = document.getElementById('grid');
-const initBtn = document.getElementById('initBtn');
-const statusEl = document.getElementById('status');
+const grid=document.getElementById('grid');
+const btn=document.getElementById('initBtn');
+const status=document.getElementById('status');
+const dpr=Math.min(window.devicePixelRatio||1,2);
+const CW=280,CH=200;
 
-// Device & Display
-const dpr = Math.min(window.devicePixelRatio || 1, 2);
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-const baseCardWidth = isMobile ? 140 : 240;
-const baseCardHeight = isMobile ? 140 : 200;
+// Audio state
+let audioCtx=null,analyser=null,src=null,active=false;
+let vol=0,bass=0,mid=0,treble=0,beat=0,beatDecay=0;
+let rawVol=0,rawBass=0,rawMid=0,rawTreble=0,rawBeat=0;
+let smoothVol=0,smoothBass=0,smoothMid=0,smoothTreble=0,smoothBeat=0;
+let fallback=false,fallbackT=0;
+let time=0,frame=0;
 
-// Audio State
-let audioCtx = null, analyser = null, src = null, active = false;
-let vol = 0, bass = 0, mid = 0, treble = 0, beat = 0, beatDecay = 0;
-let rawVol = 0, rawBass = 0, rawMid = 0, rawTreble = 0, rawBeat = 0;
-let smoothVol = 0, smoothBass = 0, smoothMid = 0, smoothTreble = 0, smoothBeat = 0;
-let fallback = false, fallbackT = 0;
-let time = 0, frame = 0;
+// Lerp helper
+const lerp=(a,b,t)=>a+(b-a)*t;
+const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+const lerpSmooth=(c,t,s)=>lerp(c,t,s||.12);
 
-// Visualization Registry
-const visuals = [];
+// Canvas data
+const canvases=[];
+const errs=new Set();
 
-// Utility Functions
-const lerp = (a, b, t) => a + (b - a) * t;
-const clamp = (v, lo, hi) => v < lo ? lo : v > hi ? hi : v;
-const lerpSmooth = (c, t, s) => lerp(c, t, s || 0.12);
-const rand = (min, max) => Math.random() * (max - min) + min;
-const randInt = (min, max) => Math.floor(rand(min, max + 1));
+function createCanvases(){
+const perCat=Math.floor(104/CAT_COUNT); // 8
+const extra=104-perCat*CAT_COUNT; // 8 extra distributed to first 8 cats
+for(let i=0;i<104;i++){
+let catIdx;
+if(i<perCat*(CAT_COUNT+1)) catIdx=Math.floor(i/(perCat+1));
+else catIdx=Math.ceil((i-perCat*(CAT_COUNT+1))/(perCat))+extra;
+// simpler distribution
+catIdx=i%CAT_COUNT;
+let subIdx=0;
+for(let j=0;j<=i;j++){if(j%CAT_COUNT===catIdx)subIdx++}
+subIdx--;
 
-// Create all visualization cards
-function createVisuals() {
-  const visualsPerCategory = Math.floor(TOTAL_VISUALS / CATEGORY_COUNT);
-  
-  for (let i = 0; i < TOTAL_VISUALS; i++) {
-    const catIdx = i % CATEGORY_COUNT;
-    const subIdx = Math.floor(i / CATEGORY_COUNT);
-    
-    // Create card container
-    const card = document.createElement('div');
-    card.className = 'card';
-    
-    // Create label
-    const label = document.createElement('div');
-    label.className = 'card-label';
-    label.textContent = `${CATEGORY_NAMES[catIdx]} #${subIdx + 1}`;
-    
-    // Create canvas
-    const canvas = document.createElement('canvas');
-    const cw = baseCardWidth * dpr;
-    const ch = baseCardHeight * dpr;
-    canvas.width = cw;
-    canvas.height = ch;
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
-    
-    // Assemble card
-    card.appendChild(label);
-    card.appendChild(canvas);
-    grid.appendChild(card);
-    
-    // Get context and setup
-    const ctx = canvas.getContext('2d');
-    ctx.scale(dpr, dpr);
-    ctx.imageSmoothingEnabled = false;
-    
-    const colors = CATEGORY_COLORS[catIdx];
-    
-    // Store visualization data
-    visuals.push({
-      ctx, canvas, catIdx, subIdx,
-      phase: i * 0.37,
-      freq: 0.5 + i * 0.07,
-      colors,
-      particles: [],
-      lifeGrid: null,
-      matrixCols: null,
-      nebulaStars: null,
-      error: false,
-      lastRender: 0
-    });
-  }
+const card=document.createElement('div');
+card.className='card';
+const label=document.createElement('div');
+label.className='card-label';
+label.textContent=CAT_NAMES[catIdx]+' #'+(subIdx+1);
+const canvas=document.createElement('canvas');
+canvas.width=CW*dpr;
+canvas.height=CH*dpr;
+canvas.style.width=CW+'px';
+canvas.style.height=CH+'px';
+card.appendChild(label);
+card.appendChild(canvas);
+grid.appendChild(card);
+
+const ctx=canvas.getContext('2d');
+ctx.scale(dpr,dpr);
+ctx.imageSmoothingEnabled=false;
+
+const colors=CAT_COLORS[catIdx];
+canvases.push({
+ctx,canvas,catIdx,subIdx,
+phase:i*0.37,
+freq:0.5+i*0.07,
+colors,
+particles:[],
+lifeGrid:null,
+matrixCols:null,
+error:false
+});
+}
 }
 
-// Initialize Audio Context
-async function initAudio() {
-  try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    src = audioCtx.createMediaStreamSource(stream);
-    analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 2048;
-    analyser.smoothingTimeConstant = 0.85;
-    src.connect(analyser);
-    active = true;
-    initBtn.textContent = '🎙 Audio Active';
-    initBtn.classList.add('active');
-    statusEl.textContent = 'Mic: ' + stream.getAudioTracks()[0].label.slice(0, 20) + '…';
-    fallback = false;
-  } catch (e) {
-    statusEl.textContent = 'Mic denied → Organic fallback active';
-    fallback = true;
-    console.log('Audio init failed, using fallback:', e.message);
-  }
+// Audio setup
+async function initAudio(){
+try{
+audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+src=audioCtx.createMediaStreamSource(stream);
+analyser=audioCtx.createAnalyser();
+analyser.fftSize=2048;
+analyser.smoothingTimeConstant=0.8;
+src.connect(analyser);
+active=true;
+btn.textContent='🎙 Audio Active';
+btn.classList.add('active');
+status.textContent='Mic: '+stream.getAudioTracks()[0].label;
+fallback=false;
+}catch(e){
+status.textContent='Mic denied → Organic fallback';
+fallback=true;
+}
 }
 
-// Process Audio Input
-function processAudio() {
-  if (active && analyser) {
-    const bufLen = analyser.frequencyBinCount;
-    const data = new Uint8Array(bufLen);
-    analyser.getByteFrequencyData(data);
-    
-    let sum = 0, bSum = 0, mSum = 0, tSum = 0;
-    const bassEnd = Math.floor(bufLen * 0.06);
-    const midEnd = Math.floor(bufLen * 0.25);
-    
-    for (let i = 0; i < bufLen; i++) {
-      const v = data[i];
-      sum += v;
-      if (i < bassEnd) bSum += v;
-      else if (i < midEnd) mSum += v;
-      else tSum += v;
-    }
-    
-    rawVol = sum / bufLen / 255;
-    rawBass = bSum / bassEnd / 255;
-    rawMid = mSum / (midEnd - bassEnd) / 255;
-    rawTreble = tSum / (bufLen - midEnd) / 255;
-    rawBeat = (rawVol > 0.55 && rawVol > smoothVol * 1.3) ? 1 : 0;
-  }
-  
-  // Fallback organic simulation
-  if (fallback) {
-    fallbackT += 0.016;
-    rawVol = 0.3 + Math.sin(fallbackT * 0.7) * 0.2 + Math.sin(fallbackT * 1.3) * 0.15;
-    rawBass = 0.4 + Math.sin(fallbackT * 0.5) * 0.3;
-    rawMid = 0.35 + Math.sin(fallbackT * 0.9) * 0.25;
-    rawTreble = 0.3 + Math.sin(fallbackT * 1.4) * 0.2;
-    rawBeat = Math.sin(fallbackT * 3.1) > 0.92 ? 1 : 0;
-  }
-  
-  // Smooth values
-  const s = 0.14;
-  smoothVol = lerpSmooth(smoothVol, rawVol, s);
-  smoothBass = lerpSmooth(smoothBass, rawBass, s);
-  smoothMid = lerpSmooth(smoothMid, rawMid, s);
-  smoothTreble = lerpSmooth(smoothTreble, rawTreble, s);
-  smoothBeat = lerpSmooth(smoothBeat, rawBeat, s * 0.08);
-  
-  vol = smoothVol;
-  bass = smoothBass;
-  mid = smoothMid;
-  treble = smoothTreble;
-  beat = smoothBeat;
-  
-  // Beat decay
-  beatDecay *= 0.94;
-  if (beat > 0.3) beatDecay = 1;
+function processAudio(){
+if(active&&analyser){
+const bufLen=analyser.frequencyBinCount;
+const data=new Uint8Array(bufLen);
+analyser.getByteFrequencyData(data);
+
+let sum=0,bSum=0,mSum=0,tSum=0;
+const bassEnd=Math.floor(bufLen*0.06);
+const midEnd=Math.floor(bufLen*0.25);
+for(let i=0;i<bufLen;i++){
+const v=data[i];
+sum+=v;
+if(i<bassEnd)bSum+=v;
+else if(i<midEnd)mSum+=v;
+else tSum+=v;
+}
+rawVol=sum/bufLen/255;
+rawBass=bSum/bassEnd/255;
+rawMid=mSum/(midEnd-bassEnd)/255;
+rawTreble=tSum/(bufLen-midEnd)/255;
+rawBeat=rawVol>0.55&&rawVol>smoothVol*1.3?1:0;
+}
+if(fallback){
+fallbackT+=0.016;
+rawVol=0.3+Math.sin(fallbackT*0.7)*0.2+Math.sin(fallbackT*1.3)*0.15+Math.sin(fallbackT*2.7)*0.1;
+rawBass=0.4+Math.sin(fallbackT*0.5)*0.3+Math.sin(fallbackT*1.1)*0.2;
+rawMid=0.35+Math.sin(fallbackT*0.9)*0.25+Math.sin(fallbackT*1.7)*0.15;
+rawTreble=0.3+Math.sin(fallbackT*1.4)*0.2+Math.sin(fallbackT*2.3)*0.1;
+rawBeat=Math.sin(fallbackT*3.1)>0.92?1:0;
+}
+const s=0.14;
+smoothVol=lerpSmooth(smoothVol,rawVol,s);
+smoothBass=lerpSmooth(smoothBass,rawBass,s);
+smoothMid=lerpSmooth(smoothMid,rawMid,s);
+smoothTreble=lerpSmooth(smoothTreble,rawTreble,s);
+smoothBeat=lerpSmooth(smoothBeat,rawBeat,s*.08);
+vol=smoothVol;bass=smoothBass;mid=smoothMid;treble=smoothTreble;beat=smoothBeat;
+beatDecay=beatDecay*0.94;
+if(beat>0.3)beatDecay=1;
 }
 
-// Main Render Function
-function render(v) {
-  const { ctx, catIdx, subIdx, phase, freq, colors } = v;
-  const w = baseCardWidth, h = baseCardHeight;
-  
-  // Clear with fade effect
-  ctx.fillStyle = 'rgba(10, 10, 15, 0.15)';
-  ctx.fillRect(0, 0, w, h);
-  
-  const t = time, p = phase, f = freq;
-  const bv = vol, bb = bass, bm = mid, bt = treble, bbeat = beat, bdecay = beatDecay;
-  
-  try {
-    switch (catIdx) {
-      case 0: drawRipples(ctx, w, h, t, p, f, bv, bb, bm, bt, bbeat, bdecay, colors, subIdx); break;
-      case 1: drawParticles(ctx, w, h, t, p, f, bv, bb, bm, bt, bbeat, bdecay, colors, subIdx, v); break;
-      case 2: drawGeometry(ctx, w, h, t, p, f, bv, bb, bm, bt, bbeat, bdecay, colors, subIdx); break;
-      case 3: drawWaves(ctx, w, h, t, p, f, bv, bb, bm, bt, bbeat, bdecay, colors, subIdx); break;
-      case 4: drawCosmic(ctx, w, h, t, p, f, bv, bb, bm, bt, bbeat, bdecay, colors, subIdx, v); break;
-      case 5: drawBubble(ctx, w, h, t, p, f, bv, bb, bm, bt, bbeat, bdecay, colors, subIdx, v); break;
-      case 6: drawMatrix(ctx, w, h, t, p, f, bv, bb, bm, bt, bbeat, bdecay, colors, subIdx, v); break;
-      case 7: drawFractal(ctx, w, h, t, p, f, bv, bb, bm, bt, bbeat, bdecay, colors, subIdx); break;
-      case 8: drawPlasma(ctx, w, h, t, p, f, bv, bb, bm, bt, bbeat, bdecay, colors, subIdx); break;
-      case 9: drawLife(ctx, w, h, t, p, f, bv, bb, bm, bt, bbeat, bdecay, colors, subIdx, v); break;
-      case 10: drawFluid(ctx, w, h, t, p, f, bv, bb, bm, bt, bbeat, bdecay, colors, subIdx, v); break;
-      case 11: drawPulse(ctx, w, h, t, p, f, bv, bb, bm, bt, bbeat, bdecay, colors, subIdx); break;
-      case 12: drawNebula(ctx, w, h, t, p, f, bv, bb, bm, bt, bbeat, bdecay, colors, subIdx, v); break;
-    }
-  } catch (e) {
-    if (!v.error) {
-      v.error = true;
-      ctx.fillStyle = '#ff4444';
-      ctx.font = '12px sans-serif';
-      ctx.fillText('ERR', 10, 15);
-      console.error('Render error in visual', catIdx, e);
-    }
-  }
+// ============ RENDERERS ============
+function hexToRgb(hex){
+const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+return{r,g,b};
 }
 
-// ============ VISUALIZATION DRAWING FUNCTIONS ============
+function render(c){
+const{ctx,catIdx,subIdx,phase,freq,colors}=c;
+const w=CW,h=CH;
+ctx.clearRect(0,0,w,h);
+// background
+ctx.fillStyle='rgba(10,10,15,0.15)';
+ctx.fillRect(0,0,w,h);
 
-function drawRipples(ctx, w, h, t, p, f, v, b, m, tr, bt, bd, colors, idx) {
-  const cx = w/2, cy = h/2, n = 5 + idx % 4;
-  for (let i = 0; i < n; i++) {
-    const phase2 = i * Math.PI * 2 / n + p;
-    const r = (15 + i * 20) * (0.5 + v * 0.8) + Math.sin(t * f + phase2) * 12 * (1 + b);
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.strokeStyle = colors[i % colors.length];
-    ctx.globalAlpha = clamp(0.7 - i * 0.12, 0.05, 0.7);
-    ctx.lineWidth = 1.2 + tr * 1.5;
-    ctx.stroke();
-  }
-  ctx.globalAlpha = 1;
+const t=time;
+const p=phase;
+const f=freq;
+const v=vol;
+const b=bass;
+const m=mid;
+const tr=treble;
+const bt=beat;
+const bd=beatDecay;
+
+try{
+switch(catIdx){
+case 0: drawRipples(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,subIdx);break;
+case 1: drawParticles(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,subIdx,c);break;
+case 2: drawGeometry(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,subIdx);break;
+case 3: drawWaves(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,subIdx);break;
+case 4: drawCosmic(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,subIdx,c);break;
+case 5: drawBubble(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,subIdx,c);break;
+case 6: drawMatrix(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,subIdx,c);break;
+case 7: drawFractal(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,subIdx);break;
+case 8: drawPlasma(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,subIdx);break;
+case 9: drawLife(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,subIdx,c);break;
+case 10: drawFluid(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,subIdx,c);break;
+case 11: drawPulse(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,subIdx);break;
+}
+}catch(e){
+if(!c.error){c.error=true;ctx.fillStyle='#ff4444';ctx.font='12px sans-serif';ctx.fillText('ERR',10,15)}
+}
 }
 
-function drawParticles(ctx, w, h, t, p, f, v, b, m, tr, bt, bd, colors, idx, vis) {
-  if (vis.particles.length < 15) {
-    for (let i = 0; i < 25 + idx * 3; i++) {
-      vis.particles.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        vx: (Math.random() - 0.5) * 2.5,
-        vy: (Math.random() - 0.5) * 2.5,
-        sz: 1.5 + Math.random() * 2.5,
-        hue: Math.random()
-      });
-    }
-  }
-  
-  // Update and draw particles
-  vis.particles.forEach(pt => {
-    pt.x += pt.vx * (0.6 + v * 2.5) + Math.sin(t * f + pt.x * 0.02) * 0.6;
-    pt.y += pt.vy * (0.6 + v * 2.5) + Math.cos(t * f + pt.y * 0.02) * 0.6;
-    
-    // Wrap around edges
-    if (pt.x < -10) pt.x = w + 10;
-    if (pt.x > w + 10) pt.x = -10;
-    if (pt.y < -10) pt.y = h + 10;
-    if (pt.y > h + 10) pt.y = -10;
-  });
-  
-  // Draw connections
-  ctx.globalAlpha = 0.3 + bd * 0.5;
-  for (let i = 0; i < vis.particles.length; i++) {
-    const p1 = vis.particles[i];
-    for (let j = i + 1; j < vis.particles.length; j++) {
-      const p2 = vis.particles[j];
-      const dx = p1.x - p2.x, dy = p1.y - p2.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      
-      if (dist < 50) {
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.strokeStyle = colors[(i + idx) % colors.length];
-        ctx.lineWidth = 0.4 + (1 - dist/50) * 0.8;
-        ctx.globalAlpha = (0.2 + bd * 0.4) * (1 - dist/50);
-        ctx.stroke();
-      }
-    }
-  }
-  
-  // Draw particles
-  ctx.globalAlpha = 0.8;
-  vis.particles.forEach((pt, i) => {
-    ctx.beginPath();
-    ctx.arc(pt.x, pt.y, pt.sz * (0.6 + b * 0.7), 0, Math.PI * 2);
-    ctx.fillStyle = colors[i % colors.length];
-    ctx.fill();
-  });
-  
-  ctx.globalAlpha = 1;
+// --- 0: Ripples ---
+function drawRipples(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,idx){
+const cx=w/2,cy=h/2;
+const n=5+idx;
+for(let i=0;i<n;i++){
+const phase2=i*Math.PI*2/n+p;
+const r=(20+i*25)*(0.5+v*0.8)+Math.sin(t*f+phase2)*15*(1+b);
+const alpha=clamp(0.6-i*0.08,0.05,0.6);
+ctx.beginPath();
+ctx.arc(cx,cy,r,0,Math.PI*2);
+ctx.strokeStyle=colors[i%colors.length];
+ctx.globalAlpha=alpha;
+ctx.lineWidth=1.5+tr*2;
+ctx.stroke();
+}
+ctx.globalAlpha=1;
 }
 
-function drawGeometry(ctx, w, h, t, p, f, v, b, m, tr, bt, bd, colors, idx) {
-  const cx = w/2, cy = h/2;
-  const sides = 3 + idx % 6;
-  const rot = t * f * 0.6 + p;
-  const baseSize = 25 + v * 40 + b * 25;
-  
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.rotate(rot);
-  
-  for (let layer = 0; layer < 3; layer++) {
-    ctx.save();
-    ctx.rotate(layer * Math.PI * 2 / 3);
-    
-    ctx.beginPath();
-    for (let i = 0; i <= sides; i++) {
-      const angle = i * Math.PI * 2 / sides;
-      const size = baseSize + layer * 15 + Math.sin(t * 2 + layer) * 6 * (1 + m);
-      const x = Math.cos(angle) * size;
-      const y = Math.sin(angle) * size;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    
-    ctx.strokeStyle = colors[(layer + idx) % colors.length];
-    ctx.lineWidth = 1.3 + tr * 1.2;
-    ctx.globalAlpha = 0.9 - layer * 0.2;
-    ctx.stroke();
-    
-    ctx.fillStyle = colors[(layer + 2) % colors.length] + '25';
-    ctx.fill();
-    ctx.restore();
-  }
-  
-  ctx.restore();
-  ctx.globalAlpha = 1;
+// --- 1: Particles ---
+function drawParticles(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,idx,c){
+if(!c.particles.length||c.particles.length<10){
+for(let i=0;i<30+idx*5;i++){
+c.particles.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-0.5)*2,vy:(Math.random()-0.5)*2,sz:2+Math.random()*3});
+}
+}
+c.particles.forEach(p=>{
+p.x+=p.vx*(0.5+v*2)+Math.sin(t*f+p.x*0.01)*0.5;
+p.y+=p.vy*(0.5+v*2)+Math.cos(t*f+p.y*0.01)*0.5;
+if(p.x<0)p.x=w;if(p.x>w)p.x=0;
+if(p.y<0)p.y=h;if(p.y>h)p.y=0;
+});
+ctx.globalAlpha=0.4+bd*0.6;
+c.particles.forEach((p,i)=>{
+ctx.beginPath();
+ctx.arc(p.x,p.y,p.sz*(0.5+b*0.8),0,Math.PI*2);
+ctx.fillStyle=colors[i%colors.length];
+ctx.fill();
+});
+ctx.globalAlpha=0.15;
+c.particles.forEach((p,i)=>{
+c.particles.slice(i+1).forEach(q=>{
+const dx=p.x-q.x,dy=p.y-q.y;
+const d=Math.sqrt(dx*dx+dy*dy);
+if(d<60){
+ctx.beginPath();
+ctx.moveTo(p.x,p.y);
+ctx.lineTo(q.x,q.y);
+ctx.strokeStyle=colors[(i+idx)%colors.length];
+ctx.lineWidth=0.5;
+ctx.stroke();
+}
+});
+});
+ctx.globalAlpha=1;
 }
 
-function drawWaves(ctx, w, h, t, p, f, v, b, m, tr, bt, bd, colors, idx) {
-  const waveCount = 3 + idx % 4;
-  
-  for (let i = 0; i < waveCount; i++) {
-    ctx.beginPath();
-    const yOffset = h * 0.3 + i * h * 0.15;
-    
-    for (let x = 0; x <= w; x += 3) {
-      const freqMod = 0.025 + b * 0.01;
-      const ampMod = 18 + v * 20 + m * 10;
-      const y = yOffset + 
-                Math.sin(x * freqMod + t * f * 1.2 + p + i) * ampMod +
-                Math.cos(x * freqMod * 1.5 + t * f * 0.8 + i * 2) * (8 + tr * 5);
-      
-      if (x === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    
-    ctx.strokeStyle = colors[i % colors.length];
-    ctx.lineWidth = 1.8 + tr * 1.5 + v * 1.2;
-    ctx.globalAlpha = 0.75 - i * 0.15;
-    ctx.stroke();
-  }
-  
-  ctx.globalAlpha = 1;
+// --- 2: Geometry ---
+function drawGeometry(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,idx){
+const cx=w/2,cy=h/2;
+const sides=3+idx%7;
+const rot=t*f*0.5+p;
+const sz=30+v*50+b*30;
+ctx.save();
+ctx.translate(cx,cy);
+ctx.rotate(rot);
+for(let i=0;i<3+idx%3;i++){
+ctx.save();
+ctx.rotate(i*Math.PI*2/(3+idx%3));
+ctx.beginPath();
+for(let j=0;j<=sides;j++){
+const a=j*Math.PI*2/sides;
+const r=sz+i*12+Math.sin(t*2+i)*5*(1+m);
+ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);
+}
+ctx.closePath();
+ctx.strokeStyle=colors[(i+idx)%colors.length];
+ctx.lineWidth=1.5+tr;
+ctx.stroke();
+ctx.fillStyle=colors[(i+2)%colors.length]+'22';
+ctx.fill();
+ctx.restore();
+}
+ctx.restore();
 }
 
-function drawCosmic(ctx, w, h, t, p, f, v, b, m, tr, bt, bd, colors, idx, vis) {
-  // Initialize stars if needed
-  if (!vis.nebulaStars) {
-    vis.nebulaStars = [];
-    const starCount = 40 + idx * 5;
-    for (let i = 0; i < starCount; i++) {
-      vis.nebulaStars.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        size: Math.random() * 1.8 + 0.5,
-        speed: Math.random() * 0.4 + 0.1,
-        angle: Math.random() * Math.PI * 2,
-        pulse: Math.random() * Math.PI * 2
-      });
-    }
-  }
-  
-  // Update and draw stars
-  vis.nebulaStars.forEach(star => {
-    star.angle += star.speed * 0.015 * (1 + b * 0.5);
-    star.x += Math.cos(star.angle) * star.speed * (0.7 + v);
-    star.y += Math.sin(star.angle) * star.speed * (0.7 + v);
-    
-    // Wrap around
-    if (star.x < -5) star.x = w + 5;
-    if (star.x > w + 5) star.x = -5;
-    if (star.y < -5) star.y = h + 5;
-    if (star.y > h + 5) star.y = -5;
-    
-    // Draw star
-    const pulse = 0.6 + Math.sin(t * f * 4 + star.pulse) * 0.4;
-    ctx.beginPath();
-    ctx.arc(star.x, star.y, star.size * (0.9 + bd * 0.4) * pulse, 0, Math.PI * 2);
-    ctx.fillStyle = colors[Math.floor((star.x + star.y) * 0.1) % colors.length];
-    ctx.globalAlpha = pulse * 0.85;
-    ctx.fill();
-  });
-  
-  // Draw central glow
-  ctx.globalAlpha = 0.08 + bd * 0.12;
-  ctx.beginPath();
-  ctx.arc(w/2, h/2, 35 + v * 35 + b * 20, 0, Math.PI * 2);
-  ctx.fillStyle = colors[idx % colors.length];
-  ctx.fill();
-  
-  ctx.globalAlpha = 1;
+// --- 3: Waves ---
+function drawWaves(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,idx){
+const n=3+idx%4;
+for(let i=0;i<n;i++){
+ctx.beginPath();
+for(let x=0;x<=w;x+=2){
+const y=h/2+Math.sin(x*0.03*(1+b)+t*f+p+i)*25*(1+v)+Math.cos(x*0.05+t*f*1.5+i*2)*15*m;
+x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+}
+ctx.strokeStyle=colors[i%colors.length];
+ctx.lineWidth=2+tr*2;
+ctx.globalAlpha=0.6-i*0.1;
+ctx.stroke();
+}
+ctx.globalAlpha=1;
 }
 
-function drawBubble(ctx, w, h, t, p, f, v, b, m, tr, bt, bd, colors, idx, vis) {
-  if (vis.particles.length < 12) {
-    for (let i = 0; i < 60 + idx * 8; i++) {
-      vis.particles.push({
-        x: w/2 + (Math.random() - 0.5) * w * 0.7,
-        y: h + 10,
-        life: 1,
-        speed: 0.8 + Math.random() * 2.5,
-        drift: (Math.random() - 0.5) * 1.2,
-        size: 2 + Math.random() * 4,
-        hue: Math.random()
-      });
-    }
-  }
-  
-  ctx.globalCompositeOperation = 'lighter';
-  
-  vis.particles.forEach(bub => {
-    bub.y -= bub.speed * (0.7 + v * 1.8);
-    bub.x += bub.drift + Math.sin(t * f + bub.y * 0.04) * 0.7;
-    bub.life -= 0.007 * (1 + b * 0.4);
-    
-    // Reset if off screen or dead
-    if (bub.life <= 0 || bub.y < -10) {
-      bub.x = w/2 + (Math.random() - 0.5) * w * 0.7;
-      bub.y = h + 5;
-      bub.life = 1;
-      bub.speed = 0.8 + Math.random() * 2.5;
-    }
-    
-    // Draw bubble
-    const gradient = ctx.createRadialGradient(bub.x, bub.y, 0, bub.x, bub.y, bub.size * bub.life * 2);
-    gradient.addColorStop(0, colors[Math.floor(bub.hue * colors.length)] + 'cc');
-    gradient.addColorStop(0.5, colors[Math.floor(bub.hue * colors.length)] + '66');
-    gradient.addColorStop(1, 'transparent');
-    
-    ctx.beginPath();
-    ctx.arc(bub.x, bub.y, bub.size * bub.life, 0, Math.PI * 2);
-    ctx.fillStyle = gradient;
-    ctx.globalAlpha = bub.life * 0.8;
-    ctx.fill();
-  });
-  
-  ctx.globalCompositeOperation = 'source-over';
-  ctx.globalAlpha = 1;
+// --- 4: Cosmic ---
+function drawCosmic(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,idx,c){
+if(!c.particles.length||c.particles.length<20){
+for(let i=0;i<60+idx*10;i++){
+c.particles.push({x:Math.random()*w,y:Math.random()*h,sz:Math.random()*2.5,spd:Math.random()*0.5+0.1,angle:Math.random()*Math.PI*2});
+}
+}
+c.particles.forEach(p=>{
+p.angle+=p.spd*0.01*(1+b);
+p.x+=Math.cos(p.angle)*p.spd*(0.5+v);
+p.y+=Math.sin(p.angle)*p.spd*(0.5+v);
+if(p.x<0)p.x=w;if(p.x>w)p.x=0;
+if(p.y<0)p.y=h;if(p.y>h)p.y=0;
+});
+c.particles.forEach(p=>{
+const twinkle=0.5+Math.sin(t*f*3+p.x+p.y)*0.5;
+ctx.beginPath();
+ctx.arc(p.x,p.y,p.sz*(0.8+bd*0.5),0,Math.PI*2);
+ctx.fillStyle=colors[Math.floor(p.x+p.y)%colors.length];
+ctx.globalAlpha=twinkle*0.8;
+ctx.fill();
+});
+ctx.globalAlpha=0.05+bd*0.15;
+ctx.beginPath();
+ctx.arc(w/2,h/2,40+v*40,0,Math.PI*2);
+ctx.fillStyle=colors[idx%colors.length];
+ctx.fill();
+ctx.globalAlpha=1;
 }
 
-function drawMatrix(ctx, w, h, t, p, f, v, b, m, tr, bt, bd, colors, idx, vis) {
-  const charSize = 11;
-  const cols = Math.floor(w / charSize);
-  
-  // Initialize columns if needed
-  if (!vis.matrixCols) {
-    vis.matrixCols = [];
-    const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヰヱヲン0123456789';
-    
-    for (let i = 0; i < cols; i++) {
-      vis.matrixCols.push({
-        y: Math.random() * h,
-        speed: 1.2 + Math.random() * 2.8,
-        chars: []
-      });
-      
-      // Generate random characters for this column
-      const charCount = 8 + Math.floor(Math.random() * 12);
-      for (let j = 0; j < charCount; j++) {
-        vis.matrixCols[i].chars.push(chars.charAt(randInt(0, chars.length - 1)));
-      }
-    }
-  }
-  
-  // Fade effect
-  ctx.fillStyle = 'rgba(10, 10, 15, 0.1)';
-  ctx.fillRect(0, 0, w, h);
-  
-  ctx.font = `${charSize}px monospace`;
-  ctx.textAlign = 'center';
-  
-  vis.matrixCols.forEach((col, colIdx) => {
-    col.y += col.speed * (0.6 + v * 2.2);
-    
-    // Reset column if off screen
-    if (col.y > h + 20) {
-      col.y = -20;
-      col.speed = 1.2 + Math.random() * 2.8;
-      // Occasionally change characters
-      if (Math.random() > 0.7) {
-        const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789';
-        col.chars = col.chars.map(() => chars.charAt(randInt(0, chars.length - 1)));
-      }
-    }
-    
-    // Draw characters in column
-    col.chars.forEach((char, charIdx) => {
-      const y = col.y - charIdx * charSize;
-      if (y < -charSize || y > h + charSize) return;
-      
-      // Head character is brighter
-      const isHead = charIdx === 0;
-      const alpha = isHead ? 0.95 : clamp(0.7 - charIdx * 0.06, 0.1, 0.7);
-      
-      ctx.fillStyle = colors[(colIdx + charIdx + idx) % colors.length];
-      ctx.globalAlpha = alpha * (isHead ? 1 : 0.8 + bd * 0.2);
-      
-      if (isHead) {
-        ctx.fillStyle = '#ffffff';
-        ctx.globalAlpha = 0.95;
-      }
-      
-      ctx.fillText(char, colIdx * charSize + charSize/2, y);
-    });
-  });
-  
-  ctx.globalAlpha = 1;
+// --- 5: Bubble ---
+function drawBubble(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,idx,c){
+if(!c.particles.length||c.particles.length<10){
+for(let i=0;i<80+idx*10;i++){
+c.particles.push({x:w/2+(Math.random()-0.5)*60,y:h-10,life:1,speed:1+Math.random()*3,drift:(Math.random()-0.5)*1.5,sz:2+Math.random()*4});
+}
+}
+ctx.globalCompositeOperation='lighter';
+c.particles.forEach(p=>{
+p.y-=p.speed*(0.5+v*2);
+p.x+=p.drift+Math.sin(t*f+p.y*0.05)*0.5;
+p.life-=0.008*(1+b*0.5);
+if(p.life<=0||p.y<0){
+p.x=w/2+(Math.random()-0.5)*60;
+p.y=h-5;
+p.life=1;
+}
+const ci=clamp(Math.floor((1-p.life)*3)%colors.length,0,colors.length-1);
+ctx.beginPath();
+ctx.arc(p.x,p.y,p.sz*p.life,0,Math.PI*2);
+ctx.fillStyle=colors[ci];
+ctx.globalAlpha=p.life*0.7;
+ctx.fill();
+});
+ctx.globalCompositeOperation='source-over';
+ctx.globalAlpha=1;
 }
 
-function drawFractal(ctx, w, h, t, p, f, v, b, m, tr, bt, bd, colors, idx) {
-  const maxDepth = 5 + idx % 3;
-  const baseLen = 35 + v * 35;
-  
-  function branch(x, y, angle, length, depth) {
-    if (depth > maxDepth || length < 2.5) return;
-    
-    const x2 = x + Math.cos(angle) * length;
-    const y2 = y + Math.sin(angle) * length;
-    
-    // Draw branch
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(x2, y2);
-    ctx.strokeStyle = colors[(depth + idx) % colors.length];
-    ctx.globalAlpha = 1 - depth / maxDepth * 0.65;
-    ctx.lineWidth = clamp(maxDepth - depth + 0.5, 0.6, 3.5) * (1 + tr * 0.4);
-    ctx.stroke();
-    
-    // Recurse with audio modulation
-    const spread = 0.35 + b * 0.25 + Math.sin(t * 1.8 + depth) * 0.08;
-    const lenMod = 0.72 * (1 + m * 0.15);
-    
-    branch(x2, y2, angle - spread, length * lenMod, depth + 1);
-    branch(x2, y2, angle + spread, length * lenMod, depth + 1);
-  }
-  
-  // Start from bottom center with slight sway
-  const sway = Math.sin(t * 0.4) * 0.08;
-  branch(w/2, h - 8, -Math.PI/2 + sway, baseLen, 0);
-  
-  ctx.globalAlpha = 1;
+// --- 6: Matrix ---
+function drawMatrix(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,idx,c){
+if(!c.matrixCols){
+const cols=Math.floor(w/14);
+c.matrixCols=[];
+for(let i=0;i<cols;i++){
+c.matrixCols.push({y:Math.random()*h,speed:1+Math.random()*3,chars:[]});
+const n=5+Math.floor(Math.random()*15);
+for(let j=0;j<n;j++)c.matrixCols[i].chars.push(String.fromCharCode(33+Math.floor(Math.random()*94)));
+}
+}
+ctx.fillStyle='rgba(10,10,15,0.12)';
+ctx.fillRect(0,0,w,h);
+ctx.font='11px monospace';
+c.matrixCols.forEach((col,i)=>{
+col.y+=col.speed*(0.5+v*2);
+if(col.y>h){col.y=-20;col.speed=1+Math.random()*3;}
+col.chars.forEach((ch,j)=>{
+const cy=col.y-j*14;
+if(cy<0||cy>h)return;
+const bright=1-j*0.08;
+ctx.fillStyle=colors[(i+j+idx)%colors.length];
+ctx.globalAlpha=clamp(bright*0.8,0.05,0.8);
+if(j===0){ctx.fillStyle='#fff';ctx.globalAlpha=0.9;}
+ctx.fillText(ch,i*14,cy);
+});
+});
+ctx.globalAlpha=1;
 }
 
-function drawPlasma(ctx, w, h, t, p, f, v, b, m, tr, bt, bd, colors, idx) {
-  const step = 7 + Math.floor(idx / 4) * 2;
-  
-  for (let x = 0; x < w; x += step) {
-    for (let y = 0; y < h; y += step) {
-      // Multi-layered sine wave plasma
-      const val = (
-        Math.sin(x * 0.04 + t * f * 0.9 + p) +
-        Math.sin(y * 0.04 + t * f * 0.7 + p + 1) +
-        Math.sin((x + y) * 0.03 + t * f * 1.3 + p + 2) +
-        Math.sin(Math.sqrt(x*x + y*y) * 0.025 + t * f * 0.5 + p + 3)
-      ) / 4;
-      
-      // Map value to color
-      const colorIdx = clamp(Math.floor((val + 1) * colors.length / 2), 0, colors.length - 1);
-      ctx.fillStyle = colors[colorIdx];
-      ctx.globalAlpha = 0.25 + val * 0.35 + v * 0.25 + bd * 0.1;
-      ctx.fillRect(x, y, step + 1, step + 1);
-    }
-  }
-  
-  ctx.globalAlpha = 1;
+// --- 7: Fractal ---
+function drawFractal(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,idx){
+const maxDepth=6+idx%4;
+const len=40+v*30;
+const angle=t*f*0.3+p;
+function branch(x,y,a,l,d){
+if(d>maxDepth||l<3)return;
+const x2=x+Math.cos(a)*l;
+const y2=y+Math.sin(a)*l;
+ctx.beginPath();
+ctx.moveTo(x,y);
+ctx.lineTo(x2,y2);
+ctx.strokeStyle=colors[(d+idx)%colors.length];
+ctx.globalAlpha=1-d/maxDepth*0.7;
+ctx.lineWidth=clamp(maxDepth-d,0.5,4)*(1+tr*0.5);
+ctx.stroke();
+const spread=0.4+b*0.3+Math.sin(t*2+d)*0.1;
+branch(x2,y2,a-spread,l*0.68*(1+m*0.2),d+1);
+branch(x2,y2,a+spread,l*0.68*(1+m*0.2),d+1);
+}
+branch(w/2,h-10,-Math.PI/2+Math.sin(t*0.5)*0.1,len,0);
+ctx.globalAlpha=1;
 }
 
-function drawLife(ctx, w, h, t, p, f, v, b, m, tr, bt, bd, colors, idx, vis) {
-  const cellSize = 7 + idx % 4;
-  const cols = Math.floor(w / cellSize);
-  const rows = Math.floor(h / cellSize);
-  
-  // Initialize grid if needed
-  if (!vis.lifeGrid) {
-    vis.lifeGrid = [];
-    for (let y = 0; y < rows; y++) {
-      vis.lifeGrid[y] = [];
-      for (let x = 0; x < cols; x++) {
-        vis.lifeGrid[y][x] = Math.random() > 0.72 ? 1 : 0;
-      }
-    }
-  }
-  
-  // Update grid at variable speed based on audio
-  const updateInterval = 10 - Math.floor(b * 5);
-  if (frame % clamp(updateInterval, 3, 12) === 0) {
-    const next = [];
-    for (let y = 0; y < rows; y++) {
-      next[y] = [];
-      for (let x = 0; x < cols; x++) {
-        // Count neighbors with wrapping
-        let neighbors = 0;
-        for (let dy = -1; dy <= 1; dy++) {
-          for (let dx = -1; dx <= 1; dx++) {
-            if (dx === 0 && dy === 0) continue;
-            const nx = (x + dx + cols) % cols;
-            const ny = (y + dy + rows) % rows;
-            neighbors += vis.lifeGrid[ny][nx];
-          }
-        }
-        
-        // Game of Life rules with audio influence
-        const alive = vis.lifeGrid[y][x];
-        const birthChance = 0.15 + v * 0.2;
-        next[y][x] = (alive && (neighbors === 2 || neighbors === 3)) || 
-                     (!alive && (neighbors === 3 || (Math.random() < birthChance && neighbors === 2 && v > 0.4))) ? 1 : 0;
-      }
-    }
-    vis.lifeGrid = next;
-  }
-  
-  // Draw cells
-  vis.lifeGrid.forEach((row, y) => {
-    row.forEach((cell, x) => {
-      if (cell || v > 0.35) {
-        const colorIdx = (x + y + idx + Math.floor(t * 2)) % colors.length;
-        ctx.fillStyle = colors[colorIdx];
-        ctx.globalAlpha = cell ? 0.75 : 0.18 + v * 0.3;
-        
-        // Beat flash effect
-        if (cell && Math.random() < bd * 0.25) {
-          ctx.fillStyle = '#ffffff';
-          ctx.globalAlpha = 0.9;
-        }
-        
-        ctx.fillRect(x * cellSize, y * cellSize, cellSize - 1, cellSize - 1);
-      }
-    });
-  });
-  
-  ctx.globalAlpha = 1;
+// --- 8: Plasma ---
+function drawPlasma(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,idx){
+const step=6+Math.floor(idx/3)*2;
+for(let x=0;x<w;x+=step){
+for(let y=0;y<h;y+=step){
+const v1=Math.sin(x*0.05+t*f+p);
+const v2=Math.sin(y*0.05+t*f*0.7+p+1);
+const v3=Math.sin((x+y)*0.03+t*f*1.3+p+2);
+const v4=Math.sin(Math.sqrt(x*x+y*y)*0.02+t*f*0.5+p+3);
+const val=(v1+v2+v3+v4)/4;
+const ci=clamp(Math.floor((val+1)*colors.length/2),0,colors.length-1);
+ctx.fillStyle=colors[ci];
+ctx.globalAlpha=0.3+val*0.3+v*0.2;
+ctx.fillRect(x,y,step,step);
+}
+}
+ctx.globalAlpha=1;
 }
 
-function drawFluid(ctx, w, h, t, p, f, v, b, m, tr, bt, bd, colors, idx, vis) {
-  const streamCount = 4 + idx % 5;
-  
-  // Draw flowing streams
-  for (let s = 0; s < streamCount; s++) {
-    ctx.beginPath();
-    let x = 0;
-    let y = h * (0.15 + s / streamCount * 0.7);
-    ctx.moveTo(x, y);
-    
-    for (let i = 0; i < 80; i++) {
-      const nx = x + 4;
-      // Complex wave motion with audio modulation
-      const wave1 = Math.sin(nx * 0.035 + t * f + p + s) * 18 * (1 + b);
-      const wave2 = Math.cos(nx * 0.06 + t * f * 0.9 + s * 2) * 12 * m;
-      const wave3 = Math.sin(nx * 0.02 + t * f * 1.4 + s) * 8 * tr;
-      const ny = y + wave1 + wave2 + wave3;
-      
-      ctx.lineTo(nx, ny);
-      x = nx;
-      y = ny;
-    }
-    
-    ctx.strokeStyle = colors[s % colors.length];
-    ctx.lineWidth = 1.6 + tr * 1.8 + v * 1.5;
-    ctx.globalAlpha = 0.55 + bd * 0.35;
-    ctx.stroke();
-  }
-  
-  // Draw floating particles
-  for (let i = 0; i < 25 + idx * 2; i++) {
-    const px = (i * 23 + Math.sin(t * f + i) * w * 0.3) % w;
-    const py = (i * 31 + Math.cos(t * f * 0.8 + i) * h * 0.4) % h;
-    
-    ctx.beginPath();
-    ctx.arc(px, py, 1.8 + v * 2.5, 0, Math.PI * 2);
-    ctx.fillStyle = colors[i % colors.length];
-    ctx.globalAlpha = 0.65 + Math.sin(t * 3 + i) * 0.2;
-    ctx.fill();
-  }
-  
-  ctx.globalAlpha = 1;
+// --- 9: Life (Cellular Automaton) ---
+function drawLife(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,idx,c){
+const cellSz=8+idx%4;
+const cols=Math.floor(w/cellSz);
+const rows=Math.floor(h/cellSz);
+if(!c.lifeGrid){
+c.lifeGrid=[];
+for(let y=0;y<rows;y++){
+c.lifeGrid[y]=[];
+for(let x=0;x<cols;x++){
+c.lifeGrid[y][x]=Math.random()>0.7?1:0;
+}
+}
+}
+if(frame%(8+Math.floor(idx/3))===0){
+const next=[];
+for(let y=0;y<rows;y++){
+next[y]=[];
+for(let x=0;x<cols;x++){
+let n=0;
+for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+if(!dx&&!dy)continue;
+const ny=(y+dy+rows)%rows,nx=(x+dx+cols)%cols;
+n+=c.lifeGrid[ny][nx];
+}
+const alive=c.lifeGrid[y][x];
+next[y][x]=(alive&&(n===2||n===3))||(!alive&&n===3)?1:0;
+}
+}
+c.lifeGrid=next;
+}
+const inject=v>0.4;
+c.lifeGrid.forEach((row,y)=>{
+row.forEach((cell,x)=>{
+if(cell||inject){
+ctx.fillStyle=colors[(x+y+idx)%colors.length];
+ctx.globalAlpha=cell?0.7:0.15;
+if(cell&&Math.random()<bd*0.3){ctx.fillStyle='#fff';ctx.globalAlpha=0.9;}
+ctx.fillRect(x*cellSz,y*cellSz,cellSz-1,cellSz-1);
+}
+});
+});
+ctx.globalAlpha=1;
 }
 
-function drawPulse(ctx, w, h, t, p, f, v, b, m, tr, bt, bd, colors, idx) {
-  const cx = w/2, cy = h/2;
-  const ringCount = 4 + idx % 5;
-  
-  // Draw concentric rings
-  for (let i = 0; i < ringCount; i++) {
-    const phase2 = i * Math.PI * 2 / ringCount + p;
-    const pulse = Math.sin(t * f * 2.2 + phase2) * 0.5 + 0.5;
-    const radius = 18 + pulse * 55 * (1 + v) + i * 14 + bt * 35;
-    
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-    ctx.strokeStyle = colors[i % colors.length];
-    ctx.lineWidth = 1.8 + tr * 2.5 + pulse * 1.5;
-    ctx.globalAlpha = 0.35 + pulse * 0.45 + bd * 0.25;
-    ctx.stroke();
-  }
-  
-  // Central glow
-  const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, 45 + v * 45);
-  gradient.addColorStop(0, colors[idx % colors.length] + 'aa');
-  gradient.addColorStop(0.6, colors[idx % colors.length] + '44');
-  gradient.addColorStop(1, 'transparent');
-  
-  ctx.fillStyle = gradient;
-  ctx.globalAlpha = 0.5 + bd * 0.4;
-  ctx.fillRect(0, 0, w, h);
-  
-  ctx.globalAlpha = 1;
+// --- 10: Fluid ---
+function drawFluid(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,idx,c){
+const streams=4+idx%5;
+for(let s=0;s<streams;s++){
+ctx.beginPath();
+const startY=h*(0.1+s/(streams));
+let x=0,y=startY;
+ctx.moveTo(x,y);
+for(let i=0;i<100;i++){
+const nx=x+3;
+const ny=y+Math.sin(nx*0.03+t*f+p+s)*15*(1+b)+Math.cos(nx*0.05+t*f*0.8+s*2)*10*m;
+ctx.lineTo(nx,ny);
+x=nx;y=ny;
+}
+ctx.strokeStyle=colors[s%colors.length];
+ctx.lineWidth=1.5+tr*2+v*2;
+ctx.globalAlpha=0.5+bd*0.3;
+ctx.stroke();
+}
+// overlay dots
+for(let i=0;i<20+idx*3;i++){
+const dx=(i*17+Math.sin(t*f+i)*50)%w;
+const dy=(i*23+Math.cos(t*f*0.7+i)*40)%h;
+ctx.beginPath();
+ctx.arc(dx,dy,1.5+v*3,0,Math.PI*2);
+ctx.fillStyle=colors[i%colors.length];
+ctx.globalAlpha=0.6;
+ctx.fill();
+}
+ctx.globalAlpha=1;
 }
 
-function drawNebula(ctx, w, h, t, p, f, v, b, m, tr, bt, bd, colors, idx, vis) {
-  // Initialize nebula clouds if needed
-  if (!vis.nebulaStars) {
-    vis.nebulaStars = [];
-    // Create cloud centers
-    for (let i = 0; i < 3 + idx % 3; i++) {
-      vis.nebulaStars.push({
-        x: rand(0, w),
-        y: rand(0, h),
-        radius: rand(30, 70),
-        speed: rand(0.003, 0.01),
-        color: colors[randInt(0, colors.length - 1)],
-        particles: []
-      });
-      
-      // Add particles to this cloud
-      for (let j = 0; j < 40; j++) {
-        vis.nebulaStars[i].particles.push({
-          angle: rand(0, Math.PI * 2),
-          dist: rand(0, 1),
-          size: rand(0.5, 2.5),
-          speed: rand(0.01, 0.03)
-        });
-      }
-    }
-  }
-  
-  // Draw nebula clouds
-  vis.nebulaStars.forEach(cloud => {
-    // Update cloud position slowly
-    cloud.x += Math.sin(t * cloud.speed) * 0.3;
-    cloud.y += Math.cos(t * cloud.speed * 0.7) * 0.3;
-    
-    // Draw cloud particles
-    cloud.particles.forEach(pt => {
-      pt.angle += pt.speed * (1 + b * 0.5);
-      const px = cloud.x + Math.cos(pt.angle) * cloud.radius * pt.dist * (0.8 + v * 0.4);
-      const py = cloud.y + Math.sin(pt.angle) * cloud.radius * pt.dist * (0.8 + v * 0.4);
-      
-      // Pulsing size and opacity
-      const pulse = 0.6 + Math.sin(t * 2 + pt.angle * 3) * 0.4;
-      const alpha = 0.15 + pulse * 0.35 * (1 - pt.dist * 0.7);
-      
-      ctx.beginPath();
-      ctx.arc(px, py, pt.size * (1 + bd * 0.5) * pulse, 0, Math.PI * 2);
-      ctx.fillStyle = cloud.color;
-      ctx.globalAlpha = alpha;
-      ctx.fill();
-    });
-    
-    // Draw central glow
-    const gradient = ctx.createRadialGradient(
-      cloud.x, cloud.y, 0,
-      cloud.x, cloud.y, cloud.radius * 0.7
-    );
-    gradient.addColorStop(0, cloud.color + '44');
-    gradient.addColorStop(0.7, cloud.color + '11');
-    gradient.addColorStop(1, 'transparent');
-    
-    ctx.fillStyle = gradient;
-    ctx.globalAlpha = 0.3 + bd * 0.2;
-    ctx.beginPath();
-    ctx.arc(cloud.x, cloud.y, cloud.radius * 0.8, 0, Math.PI * 2);
-    ctx.fill();
-  });
-  
-  // Draw foreground stars
-  for (let i = 0; i < 30; i++) {
-    const sx = (i * 37 + t * 15) % w;
-    const sy = (i * 41) % h;
-    const twinkle = 0.4 + Math.sin(t * 5 + i) * 0.6;
-    
-    ctx.beginPath();
-    ctx.arc(sx, sy, 0.8 + twinkle * 0.7, 0, Math.PI * 2);
-    ctx.fillStyle = '#ffffff';
-    ctx.globalAlpha = 0.7 + twinkle * 0.3;
-    ctx.fill();
-  }
-  
-  ctx.globalAlpha = 1;
+// --- 11: Pulse ---
+function drawPulse(ctx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,idx){
+const cx=w/2,cy=h/2;
+const rings=4+idx%5;
+for(let i=0;i<rings;i++){
+const phase2=i*Math.PI*2/rings+p;
+const pulse=Math.sin(t*f*2+phase2)*0.5+0.5;
+const r=20+pulse*60*(1+v)+i*15+bt*40;
+ctx.beginPath();
+ctx.arc(cx,cy,r,0,Math.PI*2);
+ctx.strokeStyle=colors[i%colors.length];
+ctx.lineWidth=2+tr*3+pulse*2;
+ctx.globalAlpha=0.3+pulse*0.5+bd*0.3;
+ctx.stroke();
+}
+// center glow
+const grd=ctx.createRadialGradient(cx,cy,0,cx,cy,40+v*50);
+grd.addColorStop(0,colors[idx%colors.length]+'88');
+grd.addColorStop(1,'transparent');
+ctx.fillStyle=grd;
+ctx.globalAlpha=0.5+bd*0.5;
+ctx.fillRect(0,0,w,h);
+ctx.globalAlpha=1;
 }
 
-// Animation Loop
-function animate() {
-  time += 0.016;
-  frame++;
-  
-  processAudio();
-  
-  // Render all visuals with performance consideration
-  for (let i = 0; i < visuals.length; i++) {
-    // Skip rendering if off-screen (basic optimization)
-    if (!visuals[i].error) {
-      render(visuals[i]);
-    }
-  }
-  
-  requestAnimationFrame(animate);
+// ============ VIEW MODE SYSTEM ============
+let viewModeActive=false;
+let viewCanvas,viewCtx,textLayer,canvasContainer;
+let currentResolution={w:1080,h:1920};
+let selectedVisualIdx=0;
+let textElements=[];
+let selectedTextObj=null;
+let recording=false;
+let mediaRecorder=null;
+let recordedChunks=[];
+let recordingStartTime=0;
+let recordingDuration=15000;
+
+// View Mode DOM elements
+const viewModeOverlay=document.getElementById('viewModeOverlay');
+const viewModeBtn=document.getElementById('viewModeBtn');
+const closeViewModeBtn=document.getElementById('closeViewMode');
+const resButtons=document.querySelectorAll('.res-btn');
+const visualSelect=document.getElementById('visualSelect');
+const recordDurationInput=document.getElementById('recordDuration');
+const startRecordBtn=document.getElementById('startRecordBtn');
+const addTextBtn=document.getElementById('addTextBtn');
+const textLayerEl=document.getElementById('textLayer');
+const recordingIndicator=document.getElementById('recordingIndicator');
+const progressBar=document.getElementById('progressBar');
+const textColorPicker=document.getElementById('textColorPicker');
+const colorSwatches=document.querySelectorAll('.color-swatch');
+
+// Initialize visual selector
+function initVisualSelect(){
+visualSelect.innerHTML='';
+CAT_NAMES.forEach((name,idx)=>{
+const opt=document.createElement('option');
+opt.value=idx;
+opt.textContent=name;
+visualSelect.appendChild(opt);
+});
+visualSelect.addEventListener('change',(e)=>{
+selectedVisualIdx=parseInt(e.target.value);
+});
 }
 
-// Initialize
-function init() {
-  // Create all visualization cards
-  createVisuals();
-  
-  // Setup audio button
-  initBtn.addEventListener('click', initAudio);
-  
-  // Auto fallback after delay
-  setTimeout(() => {
-    if (!active && !fallback) {
-      statusEl.textContent = 'Auto: Organic simulation active';
-      fallback = true;
-    }
-  }, 3000);
-  
-  // Handle visibility change to pause audio context
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden && audioCtx && audioCtx.state !== 'suspended') {
-      audioCtx.suspend();
-    } else if (!document.hidden && audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-  });
-  
-  // Start animation loop
-  animate();
-  
-  // Initial status
-  statusEl.textContent = 'Tap to initialize audio (3s auto-fallback)';
+// Open view mode
+function openViewMode(){
+viewModeActive=true;
+viewModeOverlay.style.display='flex';
+document.body.style.overflow='hidden';
+
+// Setup view canvas
+viewCanvas=document.getElementById('viewCanvas');
+viewCtx=viewCanvas.getContext('2d');
+textLayer=document.getElementById('textLayer');
+canvasContainer=document.getElementById('canvasContainer');
+
+// Set initial resolution
+applyResolution(currentResolution.w,currentResolution.h);
+
+// Populate visual selector if empty
+if(visualSelect.options.length===0)initVisualSelect();
+
+// Event listeners for resolution buttons
+resButtons.forEach(btn=>{
+btn.addEventListener('click',()=>{
+resButtons.forEach(b=>b.classList.remove('active'));
+btn.classList.add('active');
+const w=parseInt(btn.dataset.w),h=parseInt(btn.dataset.h);
+currentResolution={w,h};
+applyResolution(w,h);
+});
+});
+
+// Text tools
+addTextBtn.addEventListener('click',addTextElement);
+
+// Color picker
+textColorPicker.addEventListener('input',(e)=>{
+if(selectedTextObj){
+selectedTextObj.color=e.target.value;
+selectedTextObj.element.style.color=e.target.value;
+updateColorSwatches(e.target.value);
+}
+});
+
+// Color swatches
+colorSwatches.forEach(swatch=>{
+swatch.addEventListener('click',()=>{
+const color=swatch.dataset.color;
+if(selectedTextObj){
+selectedTextObj.color=color;
+selectedTextObj.element.style.color=color;
+textColorPicker.value=color;
+}
+updateColorSwatches(color);
+});
+});
+
+// Close handler
+closeViewModeBtn.addEventListener('click',closeViewMode);
+viewModeOverlay.addEventListener('click',(e)=>{
+if(e.target===viewModeOverlay)closeViewMode();
+});
+
+// Record button
+startRecordBtn.addEventListener('click',toggleRecording);
+
+// Initialize with first visual
+selectedVisualIdx=0;
+visualSelect.value='0';
 }
 
-// Start when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
+function closeViewMode(){
+viewModeActive=false;
+viewModeOverlay.style.display='none';
+document.body.style.overflow='';
+if(recording)stopRecording();
+// Clear text elements on close
+textElements.forEach(te=>{
+if(te.element&&te.element.parentNode)te.element.parentNode.removeChild(te.element);
+});
+textElements=[];
+selectedTextObj=null;
 }
+
+function applyResolution(w,h){
+viewCanvas.width=w;
+viewCanvas.height=h;
+// Calculate display size maintaining aspect ratio
+const containerW=canvasContainer.clientWidth;
+const containerH=canvasContainer.clientHeight;
+const scale=Math.min(containerW/w,containerH/h,1);
+viewCanvas.style.width=(w*scale)+'px';
+viewCanvas.style.height=(h*scale)+'px';
+textLayer.style.width=w+'px';
+textLayer.style.height=h+'px';
+// Clear text elements when resolution changes
+textElements.forEach(te=>{
+if(te.element&&te.element.parentNode)te.element.parentNode.removeChild(te.element);
+});
+textElements=[];
+selectedTextObj=null;
+}
+
+function updateColorSwatches(activeColor){
+colorSwatches.forEach(s=>{
+s.classList.toggle('active',s.dataset.color.toLowerCase()===activeColor.toLowerCase());
+});
+}
+
+
+// Text element system
+function addTextElement(){
+// Only create ONE text element - prevent duplicates
+const id='text_'+Date.now();
+
+const textEl=document.createElement('div');
+textEl.className='text-element';
+textEl.id=id;
+textEl.contentEditable='true';
+textEl.textContent='Your Text Here';
+textEl.style.fontSize='24px';
+textEl.style.color='#ffffff';
+textEl.style.fontFamily='Segoe UI, system-ui, sans-serif';
+textEl.style.fontWeight='600';
+textEl.style.textShadow='0 2px 10px rgba(0,0,0,0.5)';
+textEl.style.zIndex='10';
+textEl.style.whiteSpace='nowrap';
+
+// Resize handles
+['br','bl','tr','tl'].forEach(pos=>{
+const handle=document.createElement('div');
+handle.className='text-resize-handle '+pos;
+handle.dataset.handle=pos;
+textEl.appendChild(handle);
+});
+
+textLayer.appendChild(textEl);
+
+// Calculate centered position in canvas coordinates
+const estimatedWidth=200;
+const estimatedHeight=40;
+const centerX=(currentResolution.w-estimatedWidth)/2;
+const centerY=(currentResolution.h-estimatedHeight)/2;
+
+const textObj={
+id,element:textEl,
+x:centerX,y:centerY,width:estimatedWidth,height:estimatedHeight,fontSize:24,
+color:'#ffffff',fontFamily:'Segoe UI, system-ui, sans-serif',fontWeight:'600',
+isDragging:false,isResizing:false,startX:0,startY:0,startLeft:0,startTop:0,startWidth:0,startHeight:0,resizeHandle:null
+};
+textElements.push(textObj);
+updateTextElementPosition(textObj);
+
+// Mouse events for drag - only on the element itself, not children
+textEl.addEventListener('mousedown',(e)=>{
+// Ignore if clicking on resize handle or input area
+if(e.target.classList.contains('text-resize-handle'))return;
+if(e.target.isContentEditable&&textEl.contains(document.activeElement))return;
+
+// Deselect other text elements
+textElements.forEach(t=>{if(t.element!==textEl)t.element.classList.remove('editing');});
+textEl.classList.add('editing');
+selectedTextObj=textObj;
+
+textObj.isDragging=true;
+textObj.startX=e.clientX;
+textObj.startY=e.clientY;
+textObj.startLeft=textObj.x;
+textObj.startTop=textObj.y;
+e.preventDefault();
+e.stopPropagation();
+});
+
+// Resize handles
+textEl.querySelectorAll('.text-resize-handle').forEach(handle=>{
+handle.addEventListener('mousedown',(e)=>{
+textObj.isResizing=true;
+textObj.resizeHandle=handle.dataset.handle;
+textObj.startX=e.clientX;
+textObj.startY=e.clientY;
+textObj.startWidth=textObj.width;
+textObj.startHeight=textObj.height;
+e.stopPropagation();
+e.preventDefault();
+});
+});
+
+// Global mouse move/up - use canvas coordinates
+document.addEventListener('mousemove',onTextMouseMove);
+document.addEventListener('mouseup',onTextMouseUp);
+
+// Double-click to edit
+textEl.addEventListener('dblclick',(e)=>{
+e.preventDefault();
+textEl.focus();
+const range=document.createRange();
+range.selectNodeContents(textEl);
+const sel=window.getSelection();
+sel.removeAllRanges();
+sel.addRange(range);
+});
+
+// Update styles when content changes
+textEl.addEventListener('input',()=>{
+const rect=textEl.getBoundingClientRect();
+// Convert display rect to canvas coordinates
+const containerRect=canvasContainer.getBoundingClientRect();
+const scale=currentResolution.w/parseFloat(viewCanvas.style.width)||1;
+textObj.width=(rect.width-containerRect.left)*scale;
+textObj.height=(rect.height-containerRect.top)*scale;
+});
+
+// Focus/blur for editing state
+textEl.addEventListener('focus',()=>{
+textEl.classList.add('editing');
+selectedTextObj=textObj;
+updateColorSwatches(textObj.color);
+textColorPicker.value=textObj.color;
+});
+textEl.addEventListener('blur',()=>{
+textEl.classList.remove('editing');
+if(!textEl.textContent.trim())textEl.textContent='Your Text Here';
+});
+
+// Select this text element
+selectedTextObj=textObj;
+updateColorSwatches('#ffffff');
+textColorPicker.value='#ffffff';
+}
+
+function onTextMouseMove(e){
+if(!viewModeActive)return;
+const containerRect=canvasContainer.getBoundingClientRect();
+const scale=currentResolution.w/parseFloat(viewCanvas.style.width)||1;
+
+textElements.forEach(obj=>{
+if(obj.isDragging){
+const dx=(e.clientX-containerRect.left-obj.startX)*scale;
+const dy=(e.clientY-containerRect.top-obj.startY)*scale;
+const newLeft=clamp(obj.startLeft+dx,0,currentResolution.w-50);
+const newTop=clamp(obj.startTop+dy,0,currentResolution.h-20);
+obj.x=newLeft;
+obj.y=newTop;
+updateTextElementPosition(obj);
+}else if(obj.isResizing&&obj.resizeHandle){
+const dx=(e.clientX-containerRect.left-obj.startX)*scale;
+const dy=(e.clientY-containerRect.top-obj.startY)*scale;
+let newW=obj.startWidth,newH=obj.startHeight;
+
+if(obj.resizeHandle.includes('r'))newW+=dx;
+if(obj.resizeHandle.includes('l')){newW-=dx;obj.x=clamp(obj.x-dx,0,currentResolution.w-50);}
+if(obj.resizeHandle.includes('b'))newH+=dy;
+if(obj.resizeHandle.includes('t')){newH-=dy;obj.y=clamp(obj.y-dy,0,currentResolution.h-20);}
+
+newW=clamp(newW,50,800);
+newH=clamp(newH,20,200);
+obj.width=newW;
+obj.height=newH;
+
+// Adjust font size proportionally
+const newFontSize=clamp(12+newH*0.3,12,72);
+obj.fontSize=newFontSize;
+updateTextElementPosition(obj);
+}
+});
+}
+
+function onTextMouseUp(){
+textElements.forEach(obj=>{
+obj.isDragging=false;
+obj.isResizing=false;
+obj.resizeHandle=null;
+});
+}
+
+function updateTextElementPosition(obj){
+obj.element.style.left=obj.x+'px';
+obj.element.style.top=obj.y+'px';
+obj.element.style.width=obj.width+'px';
+obj.element.style.height=obj.height+'px';
+obj.element.style.fontSize=obj.fontSize+'px';
+obj.element.style.color=obj.color;
+obj.element.style.fontFamily=obj.fontFamily;
+obj.element.style.fontWeight=obj.fontWeight;
+}
+
+// Render to view canvas
+function renderViewCanvas(){
+if(!viewModeActive||!viewCtx)return;
+const{w,h}=currentResolution;
+const t=time;
+const p=frame*0.01;
+const f=0.8;
+const v=vol,b=bass,m=mid,tr=treble,bt=beat,bd=beatDecay;
+const colors=CAT_COLORS[selectedVisualIdx];
+
+// Clear with fade for trail effect
+viewCtx.fillStyle='rgba(10,10,15,0.12)';
+viewCtx.fillRect(0,0,w,h);
+
+// Call appropriate renderer with view canvas dimensions
+try{
+switch(selectedVisualIdx){
+case 0: drawRipples(viewCtx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,0);break;
+case 1: drawParticles(viewCtx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,0,{particles:[]});break;
+case 2: drawGeometry(viewCtx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,0);break;
+case 3: drawWaves(viewCtx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,0);break;
+case 4: drawCosmic(viewCtx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,0,{particles:[]});break;
+case 5: drawBubble(viewCtx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,0,{particles:[]});break;
+case 6: drawMatrix(viewCtx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,0,{matrixCols:null});break;
+case 7: drawFractal(viewCtx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,0);break;
+case 8: drawPlasma(viewCtx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,0);break;
+case 9: drawLife(viewCtx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,0,{lifeGrid:null});break;
+case 10: drawFluid(viewCtx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,0,{particles:[]});break;
+case 11: drawPulse(viewCtx,w,h,t,p,f,v,b,m,tr,bt,bd,colors,0);break;
+}
+}catch(e){
+console.log('View render error:',e);
+}
+
+// Render text elements on canvas (for recording)
+textElements.forEach(obj=>{
+if(obj.element&&obj.element.textContent){
+viewCtx.save();
+viewCtx.font=`${obj.fontWeight} ${obj.fontSize}px ${obj.fontFamily}`;
+viewCtx.fillStyle=obj.color;
+viewCtx.textAlign='left';
+viewCtx.textBaseline='top';
+// Shadow for readability
+viewCtx.shadowColor='rgba(0,0,0,0.7)';
+viewCtx.shadowBlur=8;
+viewCtx.shadowOffsetX=2;
+viewCtx.shadowOffsetY=2;
+// Word wrap for long text
+const text=obj.element.textContent;
+const maxWidth=obj.width-16;
+const lineHeight=obj.fontSize*1.3;
+let y=obj.y;
+let x=obj.x;
+const words=text.split(' ');
+let line='';
+for(let n=0;n<words.length;n++){
+const testLine=line+words[n]+' ';
+const metrics=viewCtx.measureText(testLine);
+if(metrics.width>maxWidth&&n>0){
+viewCtx.fillText(line,x,y);
+line=words[n]+' ';
+y+=lineHeight;
+}else{
+line=testLine;
+}
+}
+viewCtx.fillText(line,x,y);
+viewCtx.restore();
+}
+});
+}
+
+// Recording system
+async function toggleRecording(){
+if(recording){
+stopRecording();
+return;
+}
+const durationSec=parseInt(recordDurationInput.value)||15;
+recordingDuration=clamp(durationSec,5,60)*1000;
+
+try{
+const stream=viewCanvas.captureStream(30);
+// Try to add audio if available
+if(audioCtx&&analyser){
+const audioDest=audioCtx.createMediaStreamDestination();
+if(src)src.connect(audioDest);
+const audioTrack=audioDest.stream.getAudioTracks()[0];
+if(audioTrack)stream.addTrack(audioTrack);
+}
+
+mediaRecorder=new MediaRecorder(stream,{
+mimeType:MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?'video/webm;codecs=vp9':
+MediaRecorder.isTypeSupported('video/webm;codecs=vp8')?'video/webm;codecs=vp8':'video/webm'
+});
+
+recordedChunks=[];
+mediaRecorder.ondataavailable=e=>{if(e.data.size>0)recordedChunks.push(e.data);};
+mediaRecorder.onstop=saveRecording;
+
+mediaRecorder.start(100);
+recording=true;
+recordingStartTime=Date.now();
+startRecordBtn.textContent='⏹️ Stop & Download';
+startRecordBtn.disabled=true;
+recordingIndicator.classList.add('active');
+recordingIndicator.style.display='flex';
+
+// Update progress
+const progressInterval=setInterval(()=>{
+const elapsed=Date.now()-recordingStartTime;
+const pct=Math.min(100,(elapsed/recordingDuration)*100);
+progressBar.style.width=pct+'%';
+if(elapsed>=recordingDuration)stopRecording();
+},100);
+
+// Store interval ID on button for cleanup
+startRecordBtn._progressInterval=progressInterval;
+
+}catch(e){
+console.error('Recording error:',e);
+status.textContent='Recording failed: '+e.message;
+startRecordBtn.disabled=false;
+}
+}
+
+function stopRecording(){
+if(!recording||!mediaRecorder)return;
+recording=false;
+if(startRecordBtn._progressInterval){
+clearInterval(startRecordBtn._progressInterval);
+delete startRecordBtn._progressInterval;
+}
+mediaRecorder.stop();
+startRecordBtn.textContent='⏺️ Record & Download';
+startRecordBtn.disabled=false;
+recordingIndicator.classList.remove('active');
+progressBar.style.width='0%';
+}
+
+function saveRecording(){
+if(recordedChunks.length===0){
+status.textContent='No data recorded';
+return;
+}
+const blob=new Blob(recordedChunks,{type:mediaRecorder.mimeType});
+const url=URL.createObjectURL(blob);
+const a=document.createElement('a');
+a.href=url;
+const resLabel=currentResolution.w===1080?'portrait':'landscape';
+a.download=`audio-reactive-${CAT_NAMES[selectedVisualIdx].toLowerCase()}-${resLabel}-${new Date().toISOString().slice(0,10)}.webm`;
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+URL.revokeObjectURL(url);
+status.textContent='✓ Video downloaded!';
+recordedChunks=[];
+}
+
+// ============ MAIN LOOP ============
+function loop(){
+time+=0.016;
+frame++;
+processAudio();
+for(let i=0;i<canvases.length;i++){
+if(!canvases[i].error)render(canvases[i]);
+}
+// Render view canvas if active
+if(viewModeActive)renderViewCanvas();
+requestAnimationFrame(loop);
+}
+
+// ============ INIT ============
+btn.addEventListener('click',initAudio);
+viewModeBtn.addEventListener('click',openViewMode);
+createCanvases();
+status.textContent='Click to initialize audio (3s auto-fallback)';
+setTimeout(()=>{
+if(!active){
+status.textContent='Auto: Organic simulation active';
+fallback=true;
+}
+},3000);
+loop();
 })();
 </script>
 </body>
-</html>
+</html> 
